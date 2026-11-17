@@ -39,15 +39,8 @@ Console.WriteLine();
 while (listener.IsListening)
 {
     HttpListenerContext context;
-    try
-    {
-        context = await listener.GetContextAsync();
-    }
-    catch (HttpListenerException)
-    {
-        break;
-    }
-
+    try { context = await listener.GetContextAsync(); }
+    catch (HttpListenerException) { break; }
     _ = Task.Run(() => HandleRequestAsync(context));
 }
 
@@ -60,9 +53,8 @@ static async Task HandleRequestAsync(HttpListenerContext context)
         var origin = request.Headers["Origin"];
         var host = request.Headers["Host"] ?? "";
 
-        // Aceita somente chamadas originadas no site oficial e endereçadas ao loopback.
         if (!string.Equals(origin, AllowedOrigin, StringComparison.OrdinalIgnoreCase) ||
-            !(host.StartsWith("127.0.0.1:47831", StringComparison.OrdinalIgnoreCase)))
+            !host.StartsWith("127.0.0.1:47831", StringComparison.OrdinalIgnoreCase))
         {
             response.StatusCode = (int)HttpStatusCode.Forbidden;
             await WriteJsonAsync(response, new { error = "Origem não autorizada." });
@@ -119,16 +111,16 @@ static async Task HandleRequestAsync(HttpListenerContext context)
         }
         catch { }
     }
-    finally
-    {
-        response.Close();
-    }
+    finally { response.Close(); }
 }
 
 static object GetSystemInfo()
 {
-    var memory = new MemoryStatusEx { Length = (uint)System.Runtime.InteropServices.Marshal.SizeOf<MemoryStatusEx>() };
-    GlobalMemoryStatusEx(ref memory);
+    var memory = new NativeMethods.MemoryStatusEx
+    {
+        Length = (uint)System.Runtime.InteropServices.Marshal.SizeOf<NativeMethods.MemoryStatusEx>()
+    };
+    NativeMethods.GlobalMemoryStatusEx(ref memory);
 
     string? cpuName = null;
     try
@@ -159,20 +151,23 @@ static async Task WriteJsonAsync(HttpListenerResponse response, object data)
     await response.OutputStream.WriteAsync(bytes);
 }
 
-[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-struct MemoryStatusEx
+static class NativeMethods
 {
-    public uint Length;
-    public uint MemoryLoad;
-    public ulong TotalPhysical;
-    public ulong AvailablePhysical;
-    public ulong TotalPageFile;
-    public ulong AvailablePageFile;
-    public ulong TotalVirtual;
-    public ulong AvailableVirtual;
-    public ulong AvailableExtendedVirtual;
-}
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    public struct MemoryStatusEx
+    {
+        public uint Length;
+        public uint MemoryLoad;
+        public ulong TotalPhysical;
+        public ulong AvailablePhysical;
+        public ulong TotalPageFile;
+        public ulong AvailablePageFile;
+        public ulong TotalVirtual;
+        public ulong AvailableVirtual;
+        public ulong AvailableExtendedVirtual;
+    }
 
-[System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
-[return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
-static extern bool GlobalMemoryStatusEx(ref MemoryStatusEx buffer);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    public static extern bool GlobalMemoryStatusEx(ref MemoryStatusEx buffer);
+}
