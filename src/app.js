@@ -70,10 +70,31 @@ const layer=document.getElementById("windowLayer"),menu=document.getElementById(
 const views={
 explorer:{title:"Explorador de arquivos",icon:"▰",html:`<h2>Meus arquivos</h2><p>Seus arquivos ficarão organizados aqui. A conexão com o armazenamento em nuvem será configurada em uma próxima etapa.</p><div class="file-row"><span class="file-symbol">📁</span><div><strong>Projetos</strong><small>Pasta • Nuvem pendente</small></div><span class="pill pending">Não sincronizado</span></div><div class="file-row"><span class="file-symbol">📁</span><div><strong>Modelos 3D</strong><small>Pasta • Nuvem pendente</small></div><span class="pill pending">Não sincronizado</span></div><div class="file-row"><span class="file-symbol">📁</span><div><strong>Downloads</strong><small>Pasta • Nuvem pendente</small></div><span class="pill">Vazio</span></div>`},
 apps:{title:"Central de aplicativos",icon:"▦",html:`<h2>Aplicativos</h2><p>Catálogo inicial planejado. Programas nativos serão executados pelo PC Runner quando ele estiver disponível.</p><div class="app-row"><span class="file-symbol">🖨️</span><div><strong>Bambu Studio</strong><small>Fatiador 3D • Windows</small></div><span class="pill pending">Planejado</span></div><div class="app-row"><span class="file-symbol">🧩</span><div><strong>OrcaSlicer</strong><small>Fatiador 3D • Windows</small></div><span class="pill">Futuro</span></div><div class="app-row"><span class="file-symbol">📐</span><div><strong>Ferramentas CAD</strong><small>Categoria de aplicativos</small></div><span class="pill">Futuro</span></div>`},
-settings:{title:"Configurações",icon:"⚙",html:`<h2>Configurações do ambiente</h2><p>Estado atual das conexões e componentes do NEXUS PC.</p><div class="settings-line">Interface <span>Ativa no navegador</span></div><div class="settings-line">Projeto Supabase <span>Autenticação conectada</span></div><div class="settings-line">PC Runner <span>Não conectado</span></div><div class="settings-line">Inicialização automática <span>Não configurada</span></div><div class="settings-line">Sincronização <span>Não configurada</span></div>`}
+settings:{title:"Configurações",icon:"⚙",html:`<h2>Configurações do ambiente</h2><p>Estado atual das conexões e componentes do NEXUS PC.</p><div class="settings-line">Interface <span>Ativa no navegador</span></div><div class="settings-line">Projeto Supabase <span>Autenticação conectada</span></div><div class="settings-line">PC Runner <span id="runnerStatus">Aguardando teste</span></div><button class="primary-btn" id="runnerCheck" type="button">Verificar PC Runner</button><pre id="runnerInfo" style="white-space:pre-wrap;font:inherit;font-size:13px;margin-top:12px;color:inherit"></pre><div class="settings-line">Inicialização automática <span>Não configurada</span></div><div class="settings-line">Sincronização <span>Não configurada</span></div>`}
 };
 function openWindow(key){const item=views[key];if(!item)return;menu.classList.add("hidden");let win=layer.querySelector('[data-window="'+key+'"]');if(win){win.classList.remove("hidden");win.style.zIndex=++z;return}
 win=document.createElement("section");win.className="app-window";win.dataset.window=key;win.style.zIndex=++z;win.innerHTML=`<header class="window-titlebar"><span>${item.icon}</span><span class="window-title">${item.title}</span><div class="window-controls"><button data-action="minimize" aria-label="Minimizar">—</button><button data-action="maximize" aria-label="Maximizar">□</button><button class="close" data-action="close" aria-label="Fechar">×</button></div></header><div class="window-body">${item.html}</div>`;layer.appendChild(win);
+if(key==="settings"){
+  const check=win.querySelector("#runnerCheck"),status=win.querySelector("#runnerStatus"),info=win.querySelector("#runnerInfo");
+  check.addEventListener("click",async()=>{
+    check.disabled=true;check.textContent="Verificando...";
+    status.textContent="Conectando...";
+    info.textContent="";
+    try{
+      const health=await fetch("http://127.0.0.1:47831/health",{method:"GET",mode:"cors",cache:"no-store"});
+      if(!health.ok)throw new Error("Runner respondeu com erro HTTP "+health.status);
+      const h=await health.json();
+      const sysResponse=await fetch("http://127.0.0.1:47831/system",{method:"GET",mode:"cors",cache:"no-store"});
+      if(!sysResponse.ok)throw new Error("Não foi possível consultar o computador.");
+      const s=await sysResponse.json();
+      status.textContent="Conectado";
+      info.textContent="Runner "+h.version+" • "+h.status+"\\nComputador: "+s.computerName+"\\nWindows: "+s.operatingSystem+" ("+s.architecture+")\\nProcessador: "+s.processor+"\\nNúcleos lógicos: "+s.logicalProcessors+"\\nRAM total: "+s.totalMemoryGb+" GB • Disponível: "+s.availableMemoryGb+" GB";
+    }catch(err){
+      status.textContent="Desconectado";
+      info.textContent="Não foi possível conectar ao Runner. Confirme se ele está aberto e tente novamente. Detalhe: "+err.message;
+    }finally{check.disabled=false;check.textContent="Verificar PC Runner"}
+  });
+}
 win.addEventListener("pointerdown",()=>win.style.zIndex=++z);win.querySelector(".window-controls").addEventListener("click",e=>{const a=e.target.dataset.action;if(a==="close")win.remove();if(a==="minimize")win.classList.add("hidden");if(a==="maximize")win.classList.toggle("maximized")});drag(win)}
 function drag(win){const bar=win.querySelector(".window-titlebar");let down=false,sx=0,sy=0,ox=0,oy=0;bar.addEventListener("pointerdown",e=>{if(e.target.closest(".window-controls")||win.classList.contains("maximized"))return;down=true;sx=e.clientX;sy=e.clientY;const r=win.getBoundingClientRect();ox=r.left;oy=r.top;bar.setPointerCapture(e.pointerId)});bar.addEventListener("pointermove",e=>{if(!down)return;const p=layer.getBoundingClientRect(),x=Math.max(0,Math.min(p.width-win.offsetWidth,ox+e.clientX-sx-p.left)),y=Math.max(0,Math.min(p.height-45,oy+e.clientY-sy-p.top));win.style.left=x+"px";win.style.top=y+"px";win.style.transform="none"});bar.addEventListener("pointerup",()=>down=false);bar.addEventListener("pointercancel",()=>down=false)}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-open]");if(b)openWindow(b.dataset.open);if(!e.target.closest("#startMenu")&&!e.target.closest("#startButton")&&!e.target.closest("[data-open]"))menu.classList.add("hidden")});start.addEventListener("click",()=>menu.classList.toggle("hidden"));
