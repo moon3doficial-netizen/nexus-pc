@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101923">
+<meta name="description" content="NEXUS PC — ambiente de trabalho online"><title>NEXUS PC</title><link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+<main class="desktop">
+<header class="topbar"><div class="brand"><span class="brand-mark">N</span><span>NEXUS <b>PC</b></span></div><div class="topbar-center" id="dateTime">Ambiente online</div><div class="system-state"><span class="status-dot"></span>Interface web</div></header>
+<section class="desktop-area" aria-label="Área de trabalho">
+<div class="desktop-icons">
+<button class="desktop-icon" data-open="explorer"><span class="app-icon folder">▰</span><span>Arquivos</span></button>
+<button class="desktop-icon" data-open="apps"><span class="app-icon apps">▦</span><span>Aplicativos</span></button>
+<button class="desktop-icon" data-open="settings"><span class="app-icon settings">⚙</span><span>Configurações</span></button>
+</div>
+<section class="welcome-panel"><div class="eyebrow">SEU AMBIENTE DIGITAL</div><h1>Bem-vindo ao <span>NEXUS PC</span></h1><p>Um espaço central para seus aplicativos, arquivos e ferramentas.</p>
+<div class="welcome-actions"><button class="primary-btn" data-open="apps">Explorar aplicativos <span>↗</span></button><button class="ghost-btn" data-open="explorer">Abrir arquivos</button></div>
+<div class="architecture-note"><span class="info-icon">i</span><span>Prévia da interface. A execução de programas Windows será habilitada pelo PC Runner em uma próxima etapa.</span></div></section>
+<section class="quick-status"><div class="status-card"><span class="status-label">AMBIENTE</span><strong>Web</strong><small>Executando no Chrome</small></div><div class="status-card"><span class="status-label">ARMAZENAMENTO</span><strong>Na nuvem</strong><small>Integração pendente</small></div><div class="status-card"><span class="status-label">PC RUNNER</span><strong class="muted-value">Desconectado</strong><small>Componente ainda não instalado</small></div></section>
+</section>
+<section class="window-layer" id="windowLayer" aria-live="polite"></section>
+<nav class="taskbar"><button class="start-button" id="startButton" aria-label="Abrir menu iniciar"><span class="start-mark">N</span></button><div class="taskbar-divider"></div><button class="taskbar-app" data-open="explorer" title="Arquivos">▰</button><button class="taskbar-app" data-open="apps" title="Aplicativos">▦</button><div class="taskbar-spacer"></div><div class="taskbar-tray"><span class="tray-cloud">☁</span><span id="taskbarClock">--:--</span></div></nav>
+<section class="start-menu hidden" id="startMenu"><div class="start-heading"><span class="start-mark">N</span><div><strong>NEXUS PC</strong><small>Área de trabalho</small></div></div><div class="start-search">⌕ <span>Pesquisar aplicativos e arquivos</span></div><div class="start-section-title">FIXADOS</div><div class="pinned-grid">
+<button data-open="explorer"><span class="app-icon folder">▰</span>Arquivos</button><button data-open="apps"><span class="app-icon apps">▦</span>Aplicativos</button><button data-open="settings"><span class="app-icon settings">⚙</span>Configurações</button></div><div class="start-footer"><span>PC Runner <b>Não conectado</b></span><span>●</span></div></section>
+</main><script src="src/app.js"></script></body></html>
