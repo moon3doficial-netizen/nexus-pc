@@ -1,0 +1,35 @@
+name: Build NEXUS PC Runner
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "runner/**"
+      - ".github/workflows/build-runner.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish portable Windows executable
+        run: dotnet publish .\runner\NexusPcRunner.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+
+      - name: Upload Runner
+        uses: actions/upload-artifact@v4
+        with:
+          name: NEXUS-PC-Runner-Windows-x64
+          path: runner\bin\Release\net8.0-windows\win-x64\publish\NexusPcRunner.exe
+          if-no-files-found: error
+          retention-days: 30
